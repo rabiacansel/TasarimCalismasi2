@@ -13,24 +13,20 @@ from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import seaborn as sns
 
-matrix_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\EMD_feature\EMD_feature_normalized.csv"
-label_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\label.xlsx"
-
 matrix_df = pd.read_csv(matrix_file)
 label_df = pd.read_excel(label_file)
 merged_data = pd.merge(matrix_df, label_df, on="Subject", how="inner")
 X = merged_data.loc[:, "Minimum Value":"Standard Deviation"].values 
 
 scaler = StandardScaler()
-X_reshaped = X.reshape(-1, 6)  # 2D hale getir
+X_reshaped = X.reshape(-1, 6) 
 X_scaled = scaler.fit_transform(X_reshaped)
-X = X_scaled.reshape(-1, 15, 6)  # Tekrar 3D hale getir
+X = X_scaled.reshape(-1, 15, 6)  
 
 y = merged_data["Label"].values  
 y = y.reshape(-1, 15)[:, 0]
 y = to_categorical(y, num_classes=2) 
 
-# Eğitim ve test için bölüyoruz (burada y one-hot encoded, ancak değerlendirme için integer'a çevireceğiz)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
 model = Sequential([
@@ -54,15 +50,12 @@ model = Sequential([
    Dense(2, activation='softmax'),
 ])
 
-
 model.compile(optimizer='adam',                                                      
               loss='categorical_crossentropy',
               metrics=['accuracy'])
-
 callbacks = [
     ModelCheckpoint('CNN_EMD_best_model.keras', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 ]
-
 history = model.fit(
     X_train, y_train,
     epochs=100, 
@@ -89,11 +82,9 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Tahminleri al ve integer etiketlere çevir
 y_pred = np.argmax(CNN_EMD_best_model.predict(X_test), axis=1)
 y_true = np.argmax(y_test, axis=1)
 
-# Değerlendirme metrikleri için y_true kullanıyoruz
 accuracy = accuracy_score(y_true, y_pred)
 report = classification_report(y_true, y_pred)
 conf_matrix = confusion_matrix(y_true, y_pred)
@@ -110,9 +101,8 @@ plt.ylabel("True Labels")
 plt.title("CNN Confusion Matrix")
 plt.show()
 
-# Yanlış tahminleri belirleme
-false_positives = np.where((y_true == 0) & (y_pred == 1))[0]  # Gerçek 0, tahmin 1
-false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]  # Gerçek 1, tahmin 0
+false_positives = np.where((y_true == 0) & (y_pred == 1))[0]  
+false_negatives = np.where((y_true == 1) & (y_pred == 0))[0] 
 
 print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
 print(pd.DataFrame({
