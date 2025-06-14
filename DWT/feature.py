@@ -6,9 +6,6 @@ import glob
 from scipy.stats import skew
 
 def compute_entropy(coeffs):
-    """
-    Verilen katsayıların normalize edilmiş mutlak değerleri üzerinden Shannon Entropy hesaplar.
-    """
     coeffs = np.array(coeffs)
     abs_coeffs = np.abs(coeffs)
     total = abs_coeffs.sum()
@@ -18,27 +15,18 @@ def compute_entropy(coeffs):
     probs = probs[probs > 0]
     ent = -np.sum(probs * np.log2(probs))
     return ent
-
-# Verilerin bulunduğu dizin (DWT klasörü)
-data_dir = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\DWT"
-# Dizin altındaki tüm CSV dosyalarını al (tüm 54 deneğe ait 289 pencere dosyası)
 file_paths = glob.glob(os.path.join(data_dir, "*.csv"))
 
-print(f"Toplam {len(file_paths)} dosya bulunuyor.")
-
-# Tüm dosyalardan elde edilecek sonuçların tutulacağı liste
 results = []
 
 for i, file_path in enumerate(file_paths):
     print(f"[{i+1}/{len(file_paths)}] İşleniyor: {file_path}")
     
-    # Dosya adından Subject (örneğin S1S1) ve Window (örneğin window_0) bilgisini çıkarıyoruz
     file_name = os.path.basename(file_path)
     parts = file_name.split("_")
-    subject_info = parts[1]                # Örneğin "S1S1"
-    window_info = parts[-1].split(".")[0]    # Örneğin "window_0"
+    subject_info = parts[1]                
+    window_info = parts[-1].split(".")[0]    
     
-    # Dosyayı oku
     try:
         df = pd.read_csv(file_path)
     except Exception as e:
@@ -47,7 +35,6 @@ for i, file_path in enumerate(file_paths):
     
     features_list = []
     
-    # Her satırdaki "Coefficients" sütunundan özellikleri hesapla
     for index, row in df.iterrows():
         try:
             coeffs = ast.literal_eval(row["Coefficients"])
@@ -84,10 +71,8 @@ for i, file_path in enumerate(file_paths):
             "Entropy": ent_val
         })
     
-    # DataFrame oluştur
     features_df = pd.DataFrame(features_list)
     
-    # Aynı kanala ait satırlarda "Göreceli Enerji (Relative Energy)" hesapla
     features_df["Göreceli Enerji (Relative Energy)"] = np.nan
     for channel, group in features_df.groupby("Channel"):
         total_energy = group["Enerji (Energy)"].sum()
@@ -96,28 +81,20 @@ for i, file_path in enumerate(file_paths):
         else:
             features_df.loc[group.index, "Göreceli Enerji (Relative Energy)"] = np.nan
     
-    # İstenen sütun sırası: Meta (Subject, Window, Channel, Level) + 10 özellik
     features_df = features_df[["Subject", "Window", "Channel", "Level", 
                                "Minimum Değer", "Maksimum Değer", "Medyan", "Ortalama (Mean)",
                                "Enerji (Energy)", "Standart Sapma (Standard Deviation)", "Varyans (Variance)",
                                "Çarpıklık (Skewness)", "Entropy", "Göreceli Enerji (Relative Energy)"]]
     
-    # Dosyaya ait özellik matrisini sonuçlara ekle
     results.append(features_df)
     
-    # Matrisler arasında 1 boş satır eklemek için aynı sütunlarda boş bir satır ekle
     blank_row = pd.DataFrame([[""] * len(features_df.columns)], columns=features_df.columns)
     results.append(blank_row)
 
-# Son ek boş satırı kaldır
 if results:
     results = results[:-1]
 
-# Tüm sonuçları alt alta ekleyip tek bir DataFrame oluştur
 final_df = pd.concat(results, ignore_index=True)
 
-# Çıktıyı CSV dosyası olarak kaydediyoruz
 output_path = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\Feature\feature.csv"
 final_df.to_csv(output_path, index=False)
-
-print(f"Özellikler CSV dosyası oluşturuldu: {output_path}")
