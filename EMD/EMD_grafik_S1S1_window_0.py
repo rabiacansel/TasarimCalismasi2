@@ -1,16 +1,11 @@
 import os
 import pandas as pd
 import json
-import numpy as np                      # ← eklendi
+import numpy as np                   
 import matplotlib.pyplot as plt
 from PyEMD import EMD
 
-# Girdi ve çıktı klasörleri
-input_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\DWT\DWT_S1S1_window_0.csv"
-output_img_folder = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\EMD_image"
 os.makedirs(output_img_folder, exist_ok=True)
-
-# CSV'den EEG.Pz kanalını oku ve sinyali düz listeye çevir
 df = pd.read_csv(input_file, header=None, names=['Channel', 'Index', 'Values'])
 df_pz = df[df['Channel'] == 'EEG.Pz']
 signal = []
@@ -21,21 +16,17 @@ for val in df_pz['Values']:
     except Exception:
         continue
 
-# → Burada listeden NumPy dizisine dönüştürüyoruz:
 signal = np.asarray(signal, dtype=float)
 
-# Orijinal sinyal
 plt.figure(figsize=(10, 3))
 plt.plot(signal)
 plt.tight_layout()
 plt.savefig(os.path.join(output_img_folder, "EMD_original.png"))
 plt.close()
 
-# EMD ile IMF ayrıştırması
 emd = EMD()
-imfs = emd.emd(signal)                  # Artık hata vermeyecek
+imfs = emd.emd(signal)                  
 
-# Her bir IMF için grafik
 for idx, imf in enumerate(imfs, start=1):
     plt.figure(figsize=(10, 3))
     plt.plot(imf)
@@ -43,15 +34,12 @@ for idx, imf in enumerate(imfs, start=1):
     plt.savefig(os.path.join(output_img_folder, f"EMD_IMF_{idx}.png"))
     plt.close()
 
-# IMF’lerin toplamından yeniden oluşturulan sinyal
 reconstructed = imfs.sum(axis=0)
 plt.figure(figsize=(10, 3))
 plt.plot(reconstructed)
 plt.tight_layout()
 plt.savefig(os.path.join(output_img_folder, "EMD_imftoplamları.png"))
 plt.close()
-
-print("EMD için görseller (orijinal, IMF’ler, rekonstrüksiyon) oluşturuldu.")
 
 
 
