@@ -19,13 +19,8 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from tensorflow.keras.regularizers import l2
 
-# Pandas çıktı ayarları: verileri kısaltmadan, tam olarak göster.
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
-
-# Veri setlerinin yüklenmesi ve hazırlanması (değişken isimleri değiştirilmedi)
-matrix_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\EMD_feature\EMD_feature_normalized.csv"
-label_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\label.xlsx"
 
 matrix_df = pd.read_csv(matrix_file)
 label_df = pd.read_excel(label_file)
@@ -33,16 +28,14 @@ merged_data = pd.merge(matrix_df, label_df, on="Subject", how="inner")
 X = merged_data.loc[:, "Minimum Value":"Standard Deviation"].values 
 
 scaler = StandardScaler()
-X_reshaped = X.reshape(-1, 6)  # 2D hale getiriyoruz
+X_reshaped = X.reshape(-1, 6)  
 X_scaled = scaler.fit_transform(X_reshaped)
-X = X_scaled.reshape(-1, 15, 6)  # Yeniden 3D hale getiriyoruz
+X = X_scaled.reshape(-1, 15, 6)  
 
-# y değişkeni: önce integer, sonra one-hot encoding uygulanıyor
 y_int = merged_data["Label"].values  
 y_int = y_int.reshape(-1, 15)[:, 0]
 y = to_categorical(y_int, num_classes=2)
 
-# KNN modeli
 def KNN():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -67,7 +60,6 @@ def KNN():
     plt.title("KNN Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_knn == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_knn == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -83,7 +75,6 @@ def KNN():
         "Predicted Label": y_pred[false_negatives]
     }))
 
-# SVM modeli
 def SVM():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -108,7 +99,6 @@ def SVM():
     plt.title("SVM Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_svm == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_svm == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -124,7 +114,6 @@ def SVM():
         "Predicted Label": y_pred[false_negatives]
     }))
 
-# Random Forest modeli
 def RF():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -149,7 +138,6 @@ def RF():
     plt.title("RF Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_rf == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_rf == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -164,8 +152,6 @@ def RF():
         "True Label": np.array(y_test_rf)[false_negatives],
         "Predicted Label": y_pred[false_negatives]
     }))
-
-# BiLSTM modeli
 
 def BİLSTM():
     X_train_bilstm, X_test_bilstm, y_train_bilstm, y_test_bilstm = train_test_split(X, y, test_size=0.1, random_state=42)
@@ -234,7 +220,6 @@ def BİLSTM():
     }))
 
 
-# GRU modeli
 def GRU_Model():
     X_train_gru, X_test_gru, y_train_gru, y_test_gru = train_test_split(X, y, test_size=0.1, random_state=42)
     model = Sequential([
@@ -298,7 +283,6 @@ def GRU_Model():
     plt.title("GRU Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -315,7 +299,7 @@ def GRU_Model():
     }))
 
 
-KNN()
+#KNN()
 #SVM()
 #RF()
 # BİLSTM()
