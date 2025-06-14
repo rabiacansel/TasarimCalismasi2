@@ -298,5 +298,5 @@ def BİLSTM():
 #KNN()
 #SVM()
 #RF()
-BİLSTM()
+#BİLSTM()
 #GRU_model()
