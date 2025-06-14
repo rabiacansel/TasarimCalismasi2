@@ -13,19 +13,13 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import seaborn as sns
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ReduceLROnPlateau
-# Ekstra modeller için importlar
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from tensorflow.keras.regularizers import l2
 
-# Pandas çıktı ayarları: verileri kısaltmadan, tam olarak göster.
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
-
-# Veri setlerinin yüklenmesi ve hazırlanması (değişken isimleri değiştirilmedi)
-matrix_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\Feature\feature_normalizasyon.csv"
-label_file = r"C:\Users\Casper\OneDrive\Masaüstü\Üniversiteye Dair Her Şey\3.Sınıf\bahar dönemi\Tasarım Çalışması 2\veriler\label.xlsx"
 
 matrix_df = pd.read_csv(matrix_file)
 label_df = pd.read_excel(label_file)
@@ -33,16 +27,14 @@ merged_data = pd.merge(matrix_df, label_df, on="Subject", how="inner")
 X = merged_data.loc[:, "Minimum Value":"Relative Energy"].values 
 
 scaler = StandardScaler()
-X_reshaped = X.reshape(-1, 10)  # 2D hale getiriyoruz
+X_reshaped = X.reshape(-1, 10)  
 X_scaled = scaler.fit_transform(X_reshaped)
-X = X_scaled.reshape(-1, 30, 10)  # Yeniden 3D hale getiriyoruz
+X = X_scaled.reshape(-1, 30, 10)  
 
-# y değişkeni: önce integer, sonra one-hot encoding uygulanıyor
 y_int = merged_data["Label"].values  
 y_int = y_int.reshape(-1, 30)[:, 0]
 y = to_categorical(y_int, num_classes=2)
 
-# KNN modeli
 def KNN():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -67,7 +59,6 @@ def KNN():
     plt.title("KNN Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_knn == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_knn == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -83,7 +74,6 @@ def KNN():
         "Predicted Label": y_pred[false_negatives]
     }))
 
-# SVM modeli
 def SVM():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -108,7 +98,6 @@ def SVM():
     plt.title("SVM Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_svm == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_svm == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -124,7 +113,6 @@ def SVM():
         "Predicted Label": y_pred[false_negatives]
     }))
 
-# Random Forest modeli
 def RF():
     X_flat = X.reshape(X.shape[0], -1)
     y_int_local = np.argmax(y, axis=1)
@@ -149,7 +137,6 @@ def RF():
     plt.title("RF Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_test_rf == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_test_rf == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -164,8 +151,6 @@ def RF():
         "True Label": np.array(y_test_rf)[false_negatives],
         "Predicted Label": y_pred[false_negatives]
     }))
-
-# BiLSTM modeli
 
 def BİLSTM():
     X_train_bilstm, X_test_bilstm, y_train_bilstm, y_test_bilstm = train_test_split(X, y, test_size=0.1, random_state=42)
@@ -234,8 +219,7 @@ def BİLSTM():
     }))
 
 
-# GRU modeli
-def GRU_model():
+üdef GRU_model():
     X_train_gru, X_test_gru, y_train_gru, y_test_gru = train_test_split(X, y, test_size=0.1, random_state=42)
     model = Sequential([
     Input(shape=(30, 10)),
@@ -258,10 +242,8 @@ def GRU_model():
     Dense(2, activation='softmax')
 ])
 
-# Learning rate ile Adam optimizer tanımı
     optimizer = Adam(learning_rate=0.0005)
 
-# Model derleme
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])  
     callbacks = [
         ModelCheckpoint('GRU_DWT_best_model.keras', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
@@ -299,7 +281,6 @@ def GRU_model():
     plt.title("GRU Confusion Matrix")
     plt.show()
     
-    # Yanlış sınıflandırılan örnekler
     false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
     false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
     print("\nYanlış Pozitifler (Gerçek 0, Tahmin 1):")
@@ -314,9 +295,6 @@ def GRU_model():
         "True Label": y_true[false_negatives],
         "Predicted Label": y_pred[false_negatives]
     }))
-
-# Aşağıdaki fonksiyon çağrılarından istediğiniz modeli aktif hale getirip çalıştırabilirsiniz.
-# Örneğin:
 #KNN()
 #SVM()
 #RF()
